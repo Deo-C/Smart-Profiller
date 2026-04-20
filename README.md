@@ -55,10 +55,16 @@ Smart Profiler Dashboard reduces that to **under 2 minutes**:
 
 ## Requirements
 
-- Unity **2022.3 LTS** or higher (tested on 2022.3, 2023.x, Unity 6)
+- Unity **2022.3 LTS** or higher
 - No third-party packages
 - No unsafe code
 - `.NET Standard 2.1` compatible
+
+## Tested Engine Versions 
+- Unity 6.4 ( 6000.4.3f1 )
+- Unity 6.3 ( 6000.3.9f1 )
+- Unity 6.2 ( 6000.2.12f1 )
+- Unity 6 ( 6000.0.73f1 )
 
 ---
 
