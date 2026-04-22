@@ -177,7 +177,7 @@ namespace SmartProfiler.Runtime
 
         private GameObject FindByScriptName(string typeName)
         {
-            MonoBehaviour[] behaviours = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+            MonoBehaviour[] behaviours = GetAllMonoBehaviours();
             for (int i = 0; i < behaviours.Length; i++)
             {
                 MonoBehaviour behaviour = behaviours[i];
@@ -193,6 +193,15 @@ namespace SmartProfiler.Runtime
             }
 
             return null;
+        }
+
+        private MonoBehaviour[] GetAllMonoBehaviours()
+        {
+#if UNITY_2023_1_OR_NEWER
+            return FindObjectsByType<MonoBehaviour>();
+#else
+            return FindObjectsOfType<MonoBehaviour>();
+#endif
         }
 
         private void SampleMovement()

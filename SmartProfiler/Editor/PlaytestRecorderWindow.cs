@@ -17,7 +17,6 @@ namespace SmartProfiler.Editor
         private GUIStyle _heroTitleStyle;
         private GUIStyle _heroBodyStyle;
         private GUIStyle _cardStyle;
-        private GUIStyle _cardTitleStyle;
         private GUIStyle _mutedLabelStyle;
         private GUIStyle _statValueStyle;
         private GUIStyle _sectionTitleStyle;
@@ -25,24 +24,34 @@ namespace SmartProfiler.Editor
         [MenuItem("Smart Profiler/Playtest Recorder", priority = 120)]
         public static void ShowWindow()
         {
-            var wnd = GetWindow<PlaytestRecorderWindow>();
-            wnd.titleContent = new GUIContent("Playtest Recorder");
-            wnd.minSize = new Vector2(720f, 480f);
+            PlaytestRecorderWindow window = GetWindow<PlaytestRecorderWindow>();
+            window.titleContent = new GUIContent(SmartProfilerLocalization.Get("playtest.window.title"));
+            window.minSize = new Vector2(720f, 480f);
         }
 
         private void OnEnable()
         {
             SceneView.duringSceneGui += OnSceneGUI;
+            SmartProfilerLocalization.LanguageChanged += HandleLanguageChanged;
             ReloadSessions();
         }
 
         private void OnDisable()
         {
             SceneView.duringSceneGui -= OnSceneGUI;
+            SmartProfilerLocalization.LanguageChanged -= HandleLanguageChanged;
+        }
+
+        private void HandleLanguageChanged()
+        {
+            titleContent = new GUIContent(SmartProfilerLocalization.Get("playtest.window.title"));
+            Repaint();
+            SceneView.RepaintAll();
         }
 
         private void OnGUI()
         {
+            titleContent = new GUIContent(SmartProfilerLocalization.Get("playtest.window.title"));
             EnsureStyles();
 
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, GUIStyle.none, GUI.skin.verticalScrollbar);
@@ -64,13 +73,13 @@ namespace SmartProfiler.Editor
 
         private void DrawHeader()
         {
-            Color oldColor = GUI.color;
+            Color previous = GUI.color;
             GUI.color = new Color(0.16f, 0.18f, 0.2f, 1f);
             EditorGUILayout.BeginVertical(_cardStyle);
-            GUI.color = oldColor;
+            GUI.color = previous;
 
-            GUILayout.Label("PLAYTEST RECORDER", _heroTitleStyle);
-            GUILayout.Label("Record player paths in Play Mode and turn them into a scene heatmap. Use it to spot choke points, loops, and places where players linger.", _heroBodyStyle);
+            GUILayout.Label(SmartProfilerLocalization.Get("playtest.header.title"), _heroTitleStyle);
+            GUILayout.Label(SmartProfilerLocalization.Get("playtest.header.body"), _heroBodyStyle);
 
             GUILayout.Space(10f);
             Rect accentRect = GUILayoutUtility.GetRect(1f, 4f, GUILayout.ExpandWidth(true));
@@ -81,32 +90,50 @@ namespace SmartProfiler.Editor
 
         private void DrawToolbar()
         {
-            Color oldColor = GUI.color;
+            Color previous = GUI.color;
             GUI.color = new Color(0.18f, 0.2f, 0.22f, 1f);
             EditorGUILayout.BeginVertical(_cardStyle);
-            GUI.color = oldColor;
+            GUI.color = previous;
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("Reload Sessions", GUILayout.Width(130f), GUILayout.Height(24f)))
+                if (GUILayout.Button(SmartProfilerLocalization.Get("playtest.toolbar.reload"), GUILayout.Width(130f), GUILayout.Height(24f)))
                 {
                     ReloadSessions();
                 }
 
                 GUILayout.Space(8f);
                 EditorGUI.BeginDisabledGroup(GetSelectedSession() == null);
-                if (GUILayout.Button("Delete Session", GUILayout.Width(130f), GUILayout.Height(24f)))
+                if (GUILayout.Button(SmartProfilerLocalization.Get("playtest.toolbar.delete"), GUILayout.Width(130f), GUILayout.Height(24f)))
                 {
                     DeleteSelectedSession();
                 }
                 EditorGUI.EndDisabledGroup();
 
+                GUILayout.FlexibleSpace();
+                DrawLanguageSelector();
                 GUILayout.Space(8f);
                 DrawRecordingIndicator();
             }
 
             EditorGUILayout.EndVertical();
             GUILayout.Space(10f);
+        }
+
+        private void DrawLanguageSelector()
+        {
+            string[] options =
+            {
+                SmartProfilerLocalization.GetLanguageDisplayName(SmartProfilerLanguage.English),
+                SmartProfilerLocalization.GetLanguageDisplayName(SmartProfilerLanguage.Turkish)
+            };
+
+            EditorGUI.BeginChangeCheck();
+            int selectedIndex = EditorGUILayout.Popup(SmartProfilerLocalization.Get("language.label"), (int)SmartProfilerLocalization.CurrentLanguage, options, GUILayout.Width(210f));
+            if (EditorGUI.EndChangeCheck())
+            {
+                SmartProfilerLocalization.CurrentLanguage = (SmartProfilerLanguage)Mathf.Clamp(selectedIndex, 0, 1);
+            }
         }
 
         private void DrawRecordingIndicator()
@@ -129,7 +156,7 @@ namespace SmartProfiler.Editor
 
             GUIStyle style = new GUIStyle(EditorStyles.miniBoldLabel);
             style.normal.textColor = isRecording ? new Color(1f, 0.85f, 0.85f, 1f) : new Color(0.8f, 0.8f, 0.8f, 0.9f);
-            GUI.Label(textRect, isRecording ? "REC  Recording in Play Mode" : "REC  Waiting for Play Mode", style);
+            GUI.Label(textRect, isRecording ? SmartProfilerLocalization.Get("playtest.recording.active") : SmartProfilerLocalization.Get("playtest.recording.idle"), style);
         }
 
         private void DrawSessionSelection()
@@ -137,25 +164,25 @@ namespace SmartProfiler.Editor
             string[] labels = BuildSessionLabels();
             if (labels.Length == 0)
             {
-                EditorGUILayout.HelpBox("No playtest sessions found yet. Enter Play Mode and move around to generate data.", MessageType.Info);
+                EditorGUILayout.HelpBox(SmartProfilerLocalization.Get("playtest.noSessions"), MessageType.Info);
                 return;
             }
 
-            Color oldColor = GUI.color;
+            Color previous = GUI.color;
             GUI.color = new Color(0.18f, 0.2f, 0.22f, 1f);
             EditorGUILayout.BeginVertical(_cardStyle);
-            GUI.color = oldColor;
+            GUI.color = previous;
 
-            GUILayout.Label("Session Controls", _sectionTitleStyle);
-            GUILayout.Label("Pick a run and tune how wide the painted movement cells should appear in Scene view.", _mutedLabelStyle);
+            GUILayout.Label(SmartProfilerLocalization.Get("playtest.controls.title"), _sectionTitleStyle);
+            GUILayout.Label(SmartProfilerLocalization.Get("playtest.controls.body"), _mutedLabelStyle);
             GUILayout.Space(6f);
 
-            _selectedSessionIndex = EditorGUILayout.Popup("Session", Mathf.Clamp(_selectedSessionIndex, 0, labels.Length - 1), labels);
+            _selectedSessionIndex = EditorGUILayout.Popup(SmartProfilerLocalization.Get("playtest.controls.session"), Mathf.Clamp(_selectedSessionIndex, 0, labels.Length - 1), labels);
             GUILayout.Space(2f);
 
-            _movementDiscSize = EditorGUILayout.Slider("Movement Size", _movementDiscSize, 0.05f, 1f);
+            _movementDiscSize = EditorGUILayout.Slider(SmartProfilerLocalization.Get("playtest.controls.size"), _movementDiscSize, 0.05f, 1f);
             GUILayout.Space(2f);
-            EditorGUILayout.HelpBox("Smaller values show sharper paths. Larger values blend nearby movement into wider hot zones.", MessageType.None);
+            EditorGUILayout.HelpBox(SmartProfilerLocalization.Get("playtest.controls.hint"), MessageType.None);
             EditorGUILayout.EndVertical();
             GUILayout.Space(10f);
         }
@@ -168,18 +195,18 @@ namespace SmartProfiler.Editor
                 return;
             }
 
-            Color oldColor = GUI.color;
+            Color previous = GUI.color;
             GUI.color = new Color(0.18f, 0.2f, 0.22f, 1f);
             EditorGUILayout.BeginVertical(_cardStyle);
-            GUI.color = oldColor;
+            GUI.color = previous;
 
-            GUILayout.Label("Session Summary", _sectionTitleStyle);
+            GUILayout.Label(SmartProfilerLocalization.Get("playtest.summary.title"), _sectionTitleStyle);
             GUILayout.Space(6f);
 
-            DrawStatRow("Scene", session.SceneName);
-            DrawStatRow("Created", FormatDate(session.CreatedAtIsoUtc));
-            DrawStatRow("Duration", session.DurationSeconds.ToString("F1") + "s");
-            DrawStatRow("Movement Samples", session.MovementPoints.Count.ToString());
+            DrawStatRow(SmartProfilerLocalization.Get("playtest.summary.scene"), session.SceneName);
+            DrawStatRow(SmartProfilerLocalization.Get("playtest.summary.created"), FormatDate(session.CreatedAtIsoUtc));
+            DrawStatRow(SmartProfilerLocalization.Get("playtest.summary.duration"), session.DurationSeconds.ToString("F1") + "s");
+            DrawStatRow(SmartProfilerLocalization.Get("playtest.summary.samples"), session.MovementPoints.Count.ToString());
 
             EditorGUILayout.EndVertical();
             GUILayout.Space(10f);
@@ -187,17 +214,17 @@ namespace SmartProfiler.Editor
 
         private void DrawLegend()
         {
-            Color oldColor = GUI.color;
+            Color previous = GUI.color;
             GUI.color = new Color(0.18f, 0.2f, 0.22f, 1f);
             EditorGUILayout.BeginVertical(_cardStyle);
-            GUI.color = oldColor;
+            GUI.color = previous;
 
-            GUILayout.Label("Legend", _sectionTitleStyle);
+            GUILayout.Label(SmartProfilerLocalization.Get("playtest.legend.title"), _sectionTitleStyle);
             GUILayout.Space(6f);
 
-            DrawLegendRow(new Color(0.18f, 0.82f, 0.32f, 0.95f), "Low traffic");
-            DrawLegendRow(new Color(0.98f, 0.84f, 0.18f, 0.95f), "Medium traffic");
-            DrawLegendRow(new Color(0.92f, 0.22f, 0.18f, 0.95f), "Highest player density");
+            DrawLegendRow(new Color(0.18f, 0.82f, 0.32f, 0.95f), SmartProfilerLocalization.Get("playtest.legend.low"));
+            DrawLegendRow(new Color(0.98f, 0.84f, 0.18f, 0.95f), SmartProfilerLocalization.Get("playtest.legend.medium"));
+            DrawLegendRow(new Color(0.92f, 0.22f, 0.18f, 0.95f), SmartProfilerLocalization.Get("playtest.legend.high"));
 
             EditorGUILayout.EndVertical();
         }
@@ -205,17 +232,15 @@ namespace SmartProfiler.Editor
         private void OnSceneGUI(SceneView sceneView)
         {
             PlaytestSessionData session = GetSelectedSession();
-            if (session == null)
+            if (session != null)
             {
-                return;
+                DrawMovementHeat(session);
             }
-
-            DrawMovementHeat(session);
         }
 
         private void DrawMovementHeat(PlaytestSessionData session)
         {
-            var buckets = BuildBuckets(session.MovementPoints, _movementDiscSize);
+            List<BucketPoint> buckets = BuildBuckets(session.MovementPoints, _movementDiscSize);
             if (buckets.Count == 0)
             {
                 return;
@@ -231,11 +256,11 @@ namespace SmartProfiler.Editor
             }
 
             buckets.Sort((a, b) => a.Count.CompareTo(b.Count));
-            foreach (var bucket in buckets)
+            for (int i = 0; i < buckets.Count; i++)
             {
+                BucketPoint bucket = buckets[i];
                 float intensity = Mathf.Clamp01(bucket.Count / (float)maxCount);
-                Color col = EvaluateHeatColor(intensity);
-                Handles.color = col;
+                Handles.color = EvaluateHeatColor(intensity);
                 Handles.DrawSolidDisc(bucket.Center, Vector3.forward, _movementDiscSize + intensity * _movementDiscSize * 2.4f);
             }
         }
@@ -266,8 +291,9 @@ namespace SmartProfiler.Editor
 
             for (int i = 0; i < points.Count; i++)
             {
-                Vector3 pos = points[i].Position;
-                Vector2Int key = new Vector2Int(Mathf.RoundToInt(pos.x / cellSize), Mathf.RoundToInt(pos.y / cellSize));
+                Vector3 position = points[i].Position;
+                Vector2Int key = new Vector2Int(Mathf.RoundToInt(position.x / cellSize), Mathf.RoundToInt(position.y / cellSize));
+
                 BucketPoint bucket;
                 if (!buckets.TryGetValue(key, out bucket))
                 {
@@ -328,10 +354,10 @@ namespace SmartProfiler.Editor
             }
 
             bool confirmed = EditorUtility.DisplayDialog(
-                "Delete Playtest Session",
-                "Delete the selected playtest session permanently?\n\n" + session.SceneName + "  |  " + FormatDate(session.CreatedAtIsoUtc),
-                "Delete",
-                "Cancel");
+                SmartProfilerLocalization.Get("playtest.delete.title"),
+                SmartProfilerLocalization.Format("playtest.delete.message", session.SceneName, FormatDate(session.CreatedAtIsoUtc)),
+                SmartProfilerLocalization.Get("playtest.delete.confirm"),
+                SmartProfilerLocalization.Get("playtest.delete.cancel"));
 
             if (!confirmed)
             {
@@ -369,7 +395,7 @@ namespace SmartProfiler.Editor
             for (int i = 0; i < _sessions.Count; i++)
             {
                 PlaytestSessionData session = _sessions[i];
-                labels[i] = session.SceneName + "  |  " + FormatDate(session.CreatedAtIsoUtc) + "  |  " + session.MovementPoints.Count + " pts";
+                labels[i] = SmartProfilerLocalization.Format("playtest.session.label", session.SceneName, FormatDate(session.CreatedAtIsoUtc), session.MovementPoints.Count);
             }
 
             return labels;
@@ -427,11 +453,9 @@ namespace SmartProfiler.Editor
             _cardStyle.padding = new RectOffset(12, 12, 12, 12);
             _cardStyle.margin = new RectOffset(0, 0, 0, 0);
 
-            _cardTitleStyle = new GUIStyle(EditorStyles.boldLabel);
-            _cardTitleStyle.fontSize = 12;
-            _cardTitleStyle.normal.textColor = Color.white;
-
-            _sectionTitleStyle = new GUIStyle(_cardTitleStyle);
+            _sectionTitleStyle = new GUIStyle(EditorStyles.boldLabel);
+            _sectionTitleStyle.fontSize = 12;
+            _sectionTitleStyle.normal.textColor = Color.white;
 
             _mutedLabelStyle = new GUIStyle(EditorStyles.label);
             _mutedLabelStyle.normal.textColor = new Color(1f, 1f, 1f, 0.7f);

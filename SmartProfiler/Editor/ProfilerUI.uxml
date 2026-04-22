@@ -3,60 +3,66 @@
     <ui:ScrollView name="main-scroll" class="main-scroll">
         <ui:VisualElement class="top-bar">
             <ui:VisualElement class="stat-box" name="box-fps">
-                <ui:Label text="FRAME TIME (FPS)" class="stat-title" />
+                <ui:Label text="FRAME TIME (FPS)" class="stat-title" name="title-fps" />
                 <ui:Label name="lbl-fps" text="-- ms / -- fps" class="stat-value" />
             </ui:VisualElement>
 
             <ui:VisualElement class="stat-box" name="box-gc">
-                <ui:Label text="GC ALLOC / FRAME" class="stat-title" />
+                <ui:Label text="GC ALLOC / FRAME" class="stat-title" name="title-gc" />
                 <ui:Label name="lbl-gc" text="-- B" class="stat-value" />
             </ui:VisualElement>
 
             <ui:VisualElement class="stat-box" name="box-dc">
-                <ui:Label text="DRAW CALLS" class="stat-title" />
+                <ui:Label text="DRAW CALLS" class="stat-title" name="title-dc" />
                 <ui:Label name="lbl-dc" text="--" class="stat-value" />
             </ui:VisualElement>
 
             <ui:VisualElement class="stat-box" name="box-batch">
-                <ui:Label text="BATCHING" class="stat-title" />
+                <ui:Label text="BATCHING" class="stat-title" name="title-batch" />
                 <ui:Label name="lbl-batch" text="--% saved" class="stat-value" />
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement style="flex-direction: row; align-items: center; justify-content: flex-end; margin: 0 8px; padding: 4px; background-color: rgba(255,255,255,0.05); border-radius: 4px;">
-            <ui:Toggle name="tog-autoscale" tooltip="When auto scale is disabled, you can use the mouse wheel over the charts to zoom the Y axis." label="Auto Scale Y-Axis" value="true" style="font-size: 10px; flex-direction: row-reverse;" />
+        <ui:VisualElement style="flex-direction: row; align-items: center; justify-content: space-between; margin: 0 8px; padding: 4px; background-color: rgba(255,255,255,0.05); border-radius: 4px;">
+            <ui:VisualElement name="language-popup-host" style="min-width: 180px;" />
+            <ui:VisualElement style="flex-direction: row; gap: 8px; align-items: center;">
+                <ui:Toggle name="tog-autoscale" tooltip="When auto scale is disabled, you can use the mouse wheel over the charts to zoom the Y axis." label="Auto Scale Y-Axis" value="true" style="font-size: 10px; flex-direction: row-reverse;" />
+                <ui:Button name="btn-show-fps-canvas" text="Show FPS Canvas" class="snapshot-button" style="font-size: 10px;" />
+            </ui:VisualElement>
         </ui:VisualElement>
 
         <ui:IMGUIContainer name="chart-container" class="chart-container" />
 
         <ui:VisualElement class="snapshot-panel">
             <ui:VisualElement class="section-header">
-                <ui:Label text="SNAPSHOT COMPARISON" class="section-title" />
-                <ui:Label text="See whether optimization work actually helped." class="section-subtitle" />
+                <ui:Label text="SNAPSHOT COMPARISON" class="section-title" name="snapshot-title" />
+                <ui:Label text="See whether optimization work actually helped." class="section-subtitle" name="snapshot-subtitle" />
             </ui:VisualElement>
 
             <ui:VisualElement class="snapshot-toolbar">
                 <ui:TextField name="txt-snapshot-name" label="Snapshot" value="build_v12" class="snapshot-name-field" />
                 <ui:Button name="btn-save-baseline" text="Save Baseline" class="snapshot-button" />
                 <ui:Button name="btn-save-current" text="Save Current" class="snapshot-button snapshot-button-strong" />
+                <ui:Button name="btn-export-csv" text="Export CSV" class="snapshot-button" />
+                <ui:Button name="btn-export-md" text="Export Markdown" class="snapshot-button" />
             </ui:VisualElement>
 
             <ui:VisualElement class="snapshot-selectors">
                 <ui:VisualElement class="snapshot-selector-box">
-                    <ui:Label text="BASELINE" class="selector-title" />
+                    <ui:Label text="BASELINE" class="selector-title" name="baseline-title" />
                     <ui:VisualElement name="baseline-popup-host" />
                     <ui:Label name="lbl-baseline-meta" text="No snapshot selected" class="selector-meta" />
                 </ui:VisualElement>
 
                 <ui:VisualElement class="snapshot-selector-box">
-                    <ui:Label text="CURRENT" class="selector-title" />
+                    <ui:Label text="CURRENT" class="selector-title" name="current-title" />
                     <ui:VisualElement name="current-popup-host" />
                     <ui:Label name="lbl-current-meta" text="No snapshot selected" class="selector-meta" />
                 </ui:VisualElement>
             </ui:VisualElement>
 
             <ui:VisualElement name="snapshot-empty-state" class="snapshot-empty-state">
-                <ui:Label text="Save two snapshots or pick existing ones to compare builds." />
+                <ui:Label text="Save two snapshots or pick existing ones to compare builds." name="snapshot-empty-label" />
             </ui:VisualElement>
 
             <ui:VisualElement name="snapshot-comparison-container" class="snapshot-comparison-list" />

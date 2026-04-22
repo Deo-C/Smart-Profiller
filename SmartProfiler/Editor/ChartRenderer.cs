@@ -104,18 +104,18 @@ namespace SmartProfiler.Editor
 
                 GUIStyle tooltipStyle = new GUIStyle(EditorStyles.helpBox) { richText = true, padding = new RectOffset(8, 8, 8, 8) };
                 
-                string highestCost = "None";
+                string highestCost = SmartProfilerLocalization.Get("chart.tooltip.none");
                 float highestMs = 0;
-                if (s.PhysicsTimeMs > highestMs) { highestCost = "Physics"; highestMs = s.PhysicsTimeMs; }
-                if (s.CameraRenderMs > highestMs) { highestCost = "Camera"; highestMs = s.CameraRenderMs; }
-                if (s.AnimatorUpdateMs > highestMs) { highestCost = "Animator"; highestMs = s.AnimatorUpdateMs; }
-                if (s.GcCollectMs > highestMs) { highestCost = "GC.Collect"; highestMs = s.GcCollectMs; }
+                if (s.PhysicsTimeMs > highestMs) { highestCost = SmartProfilerLocalization.Get("chart.subsystem.physics"); highestMs = s.PhysicsTimeMs; }
+                if (s.CameraRenderMs > highestMs) { highestCost = SmartProfilerLocalization.Get("chart.subsystem.camera"); highestMs = s.CameraRenderMs; }
+                if (s.AnimatorUpdateMs > highestMs) { highestCost = SmartProfilerLocalization.Get("chart.subsystem.animator"); highestMs = s.AnimatorUpdateMs; }
+                if (s.GcCollectMs > highestMs) { highestCost = SmartProfilerLocalization.Get("chart.subsystem.gcCollect"); highestMs = s.GcCollectMs; }
 
-                string tooltipText = $"<b>Frame {s.FrameIndex}</b>\n" +
-                                     $"Frame Time: <color=#ff8888>{s.FrameTimeMs:F1} ms</color>\n" +
-                                     $"Heap Memory: <color=#88ff88>{s.TotalHeapBytes / 1048576f:F1} MB</color>\n" +
-                                     $"Draw Calls: <color=#ffff88>{s.DrawCalls}</color>\n" +
-                                     $"Biggest Subsystem: {highestCost} ({highestMs:F1}ms)";
+                string tooltipText = $"<b>{SmartProfilerLocalization.Format("chart.tooltip.frame", s.FrameIndex)}</b>\n" +
+                                     $"{SmartProfilerLocalization.Get("chart.tooltip.frameTime")}: <color=#ff8888>{s.FrameTimeMs:F1} ms</color>\n" +
+                                     $"{SmartProfilerLocalization.Get("chart.tooltip.heap")}: <color=#88ff88>{s.TotalHeapBytes / 1048576f:F1} MB</color>\n" +
+                                     $"{SmartProfilerLocalization.Get("chart.tooltip.drawCalls")}: <color=#ffff88>{s.DrawCalls}</color>\n" +
+                                     $"{SmartProfilerLocalization.Get("chart.tooltip.biggest")}: {highestCost} ({highestMs:F1}ms)";
 
                 Vector2 size = tooltipStyle.CalcSize(new GUIContent(tooltipText));
                 Rect tooltipRect = new Rect(e.mousePosition.x + 10, e.mousePosition.y + 10, size.x, size.y);
@@ -225,7 +225,7 @@ namespace SmartProfiler.Editor
             GL.End();
 
             float currentFps = samples[samples.Length - 1].FrameTimeMs > 0f ? 1000f / samples[samples.Length - 1].FrameTimeMs : 0f;
-            GUI.Label(new Rect(5, rect.y + 2, 220, 15), $"FPS: {currentFps:F0} (Max: {maxVal:F0})", new GUIStyle(EditorStyles.miniLabel) { normal = { textColor = new Color(1f, 1f, 1f, 0.5f) } });
+            GUI.Label(new Rect(5, rect.y + 2, 220, 15), SmartProfilerLocalization.Format("chart.overlay.fps", currentFps, maxVal), new GUIStyle(EditorStyles.miniLabel) { normal = { textColor = new Color(1f, 1f, 1f, 0.5f) } });
         }
 
         private void DrawMemChart(Rect rect, FrameSample[] samples)
@@ -270,7 +270,7 @@ namespace SmartProfiler.Editor
             GL.End();
             
             float currentMb = samples[samples.Length - 1].TotalHeapBytes / 1048576f;
-            GUI.Label(new Rect(5, rect.y + 2, 200, 15), $"HEAP MEMORY: {currentMb:F1} MB (Max: {maxVal:F0} MB)", new GUIStyle(EditorStyles.miniLabel) { normal = { textColor = new Color(1,1,1,0.5f) } });
+            GUI.Label(new Rect(5, rect.y + 2, 220, 15), SmartProfilerLocalization.Format("chart.overlay.memory", currentMb, maxVal), new GUIStyle(EditorStyles.miniLabel) { normal = { textColor = new Color(1,1,1,0.5f) } });
         }
 
         private void DrawDcChart(Rect rect, FrameSample[] samples)
@@ -311,7 +311,7 @@ namespace SmartProfiler.Editor
             GL.End();
             
             int currentDc = samples[samples.Length - 1].DrawCalls;
-            GUI.Label(new Rect(5, rect.y + 2, 200, 15), $"DRAW CALLS: {currentDc} (Max: {maxVal:F0})", new GUIStyle(EditorStyles.miniLabel) { normal = { textColor = new Color(1,1,1,0.5f) } });
+            GUI.Label(new Rect(5, rect.y + 2, 220, 15), SmartProfilerLocalization.Format("chart.overlay.drawCalls", currentDc, maxVal), new GUIStyle(EditorStyles.miniLabel) { normal = { textColor = new Color(1,1,1,0.5f) } });
         }
 
         private void DrawHorizontalLine(Rect rect, float targetVal, float maxVal, Color col, string label)

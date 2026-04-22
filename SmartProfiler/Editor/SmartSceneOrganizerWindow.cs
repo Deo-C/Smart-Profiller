@@ -1,6 +1,8 @@
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using SmartProfiler.Runtime;
 
 namespace SmartProfiler.Editor
 {
@@ -9,21 +11,26 @@ namespace SmartProfiler.Editor
         private SceneOrganizerReport _report;
         private VisualElement _metricContainer;
         private VisualElement _groupContainer;
+        private Label _titleLabel;
         private Label _sceneSummaryLabel;
         private Label _healthLabel;
+        private Label _groupTitleLabel;
+        private Label _groupSubtitleLabel;
+        private PopupField<string> _languagePopup;
 
         [MenuItem("Smart Profiler/Scene Organizer", priority = 110)]
         public static void ShowWindow()
         {
-            var wnd = GetWindow<SmartSceneOrganizerWindow>();
-            wnd.titleContent = new GUIContent("Scene Organizer");
-            wnd.minSize = new Vector2(720f, 480f);
+            SmartSceneOrganizerWindow window = GetWindow<SmartSceneOrganizerWindow>();
+            window.titleContent = new GUIContent(SmartProfilerLocalization.Get("scene.window.title"));
+            window.minSize = new Vector2(720f, 480f);
         }
 
         private void OnEnable()
         {
             EditorApplication.hierarchyChanged += HandleHierarchyChanged;
             Selection.selectionChanged += HandleSelectionChanged;
+            SmartProfilerLocalization.LanguageChanged += HandleLanguageChanged;
             BuildUI();
             RefreshReport();
         }
@@ -32,6 +39,7 @@ namespace SmartProfiler.Editor
         {
             EditorApplication.hierarchyChanged -= HandleHierarchyChanged;
             Selection.selectionChanged -= HandleSelectionChanged;
+            SmartProfilerLocalization.LanguageChanged -= HandleLanguageChanged;
         }
 
         private void HandleHierarchyChanged()
@@ -42,6 +50,12 @@ namespace SmartProfiler.Editor
         private void HandleSelectionChanged()
         {
             Repaint();
+        }
+
+        private void HandleLanguageChanged()
+        {
+            UpdateStaticTexts();
+            RefreshReport();
         }
 
         private void BuildUI()
@@ -69,11 +83,11 @@ namespace SmartProfiler.Editor
             header.style.marginBottom = 10;
             page.Add(header);
 
-            var title = new Label("SMART SCENE ORGANIZER");
-            title.style.fontSize = 14;
-            title.style.unityFontStyleAndWeight = FontStyle.Bold;
-            title.style.color = Color.white;
-            header.Add(title);
+            _titleLabel = new Label();
+            _titleLabel.style.fontSize = 14;
+            _titleLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _titleLabel.style.color = Color.white;
+            header.Add(_titleLabel);
 
             _sceneSummaryLabel = new Label();
             _sceneSummaryLabel.style.marginTop = 2;
@@ -87,7 +101,7 @@ namespace SmartProfiler.Editor
             page.Add(toolbar);
 
             var refreshButton = new Button(RefreshReport);
-            refreshButton.text = "Refresh";
+            refreshButton.name = "refresh-button";
             refreshButton.style.marginRight = 8;
             toolbar.Add(refreshButton);
 
@@ -101,7 +115,16 @@ namespace SmartProfiler.Editor
             _healthLabel.style.borderBottomLeftRadius = 4;
             _healthLabel.style.borderBottomRightRadius = 4;
             _healthLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _healthLabel.style.marginRight = 10;
             toolbar.Add(_healthLabel);
+
+            _languagePopup = new PopupField<string>(SmartProfilerLocalization.Get("language.label"), BuildLanguageChoices(), (int)SmartProfilerLocalization.CurrentLanguage);
+            _languagePopup.RegisterValueChangedCallback(_ =>
+            {
+                int selectedIndex = Mathf.Max(0, _languagePopup.choices.IndexOf(_languagePopup.value));
+                SmartProfilerLocalization.CurrentLanguage = (SmartProfilerLanguage)Mathf.Clamp(selectedIndex, 0, 1);
+            });
+            toolbar.Add(_languagePopup);
 
             _metricContainer = new VisualElement();
             _metricContainer.style.flexDirection = FlexDirection.Row;
@@ -113,20 +136,55 @@ namespace SmartProfiler.Editor
             var groupSection = new VisualElement();
             page.Add(groupSection);
 
-            var groupTitle = new Label("Scene Groups");
-            groupTitle.style.fontSize = 12;
-            groupTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-            groupTitle.style.color = Color.white;
-            groupTitle.style.marginBottom = 6;
-            groupSection.Add(groupTitle);
+            _groupTitleLabel = new Label();
+            _groupTitleLabel.style.fontSize = 12;
+            _groupTitleLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _groupTitleLabel.style.color = Color.white;
+            _groupTitleLabel.style.marginBottom = 6;
+            groupSection.Add(_groupTitleLabel);
 
-            var groupSubtitle = new Label("Automatic grouping and color coding for the active scene.");
-            groupSubtitle.style.color = new Color(1f, 1f, 1f, 0.55f);
-            groupSubtitle.style.marginBottom = 8;
-            groupSection.Add(groupSubtitle);
+            _groupSubtitleLabel = new Label();
+            _groupSubtitleLabel.style.color = new Color(1f, 1f, 1f, 0.55f);
+            _groupSubtitleLabel.style.marginBottom = 8;
+            groupSection.Add(_groupSubtitleLabel);
 
             _groupContainer = new VisualElement();
             groupSection.Add(_groupContainer);
+
+            UpdateStaticTexts();
+        }
+
+        private void UpdateStaticTexts()
+        {
+            titleContent = new GUIContent(SmartProfilerLocalization.Get("scene.window.title"));
+
+            if (_titleLabel != null)
+            {
+                _titleLabel.text = SmartProfilerLocalization.Get("scene.page.title");
+            }
+
+            if (_groupTitleLabel != null)
+            {
+                _groupTitleLabel.text = SmartProfilerLocalization.Get("scene.groups.title");
+            }
+
+            if (_groupSubtitleLabel != null)
+            {
+                _groupSubtitleLabel.text = SmartProfilerLocalization.Get("scene.groups.subtitle");
+            }
+
+            Button refreshButton = rootVisualElement?.Q<Button>("refresh-button");
+            if (refreshButton != null)
+            {
+                refreshButton.text = SmartProfilerLocalization.Get("scene.toolbar.refresh");
+            }
+
+            if (_languagePopup != null)
+            {
+                _languagePopup.label = SmartProfilerLocalization.Get("language.label");
+                _languagePopup.choices = BuildLanguageChoices();
+                _languagePopup.value = _languagePopup.choices[(int)SmartProfilerLocalization.CurrentLanguage];
+            }
         }
 
         private void RefreshReport()
@@ -142,11 +200,11 @@ namespace SmartProfiler.Editor
                 return;
             }
 
-            _sceneSummaryLabel.text = _report.SceneName + "  |  " + _report.TotalObjects + " objects  |  " + _report.ActiveObjects + " active";
+            _sceneSummaryLabel.text = SmartProfilerLocalization.Format("scene.summary", _report.SceneName, _report.TotalObjects, _report.ActiveObjects);
 
             SceneHealthLevel overallLevel = ResolveOverallLevel(_report);
             ApplyBadgeStyle(_healthLabel, overallLevel);
-            _healthLabel.text = "Health: " + overallLevel;
+            _healthLabel.text = SmartProfilerLocalization.Format("scene.health", GetHealthDisplayName(overallLevel));
 
             _metricContainer.Clear();
             for (int i = 0; i < _report.Metrics.Count; i++)
@@ -228,7 +286,7 @@ namespace SmartProfiler.Editor
             name.style.color = Color.white;
             row.Add(name);
 
-            var counts = new Label(group.ObjectCount + " objs  |  " + group.ActiveCount + " active  |  " + group.TriangleCount.ToString("N0") + " tris");
+            var counts = new Label(SmartProfilerLocalization.Format("scene.group.row", group.ObjectCount, group.ActiveCount, group.TriangleCount.ToString("N0")));
             counts.style.flexShrink = 1f;
             counts.style.whiteSpace = WhiteSpace.Normal;
             counts.style.color = new Color(1f, 1f, 1f, 0.7f);
@@ -279,25 +337,64 @@ namespace SmartProfiler.Editor
 
         private Color GetGroupColor(string groupName)
         {
-            switch (groupName)
+            if (groupName == SmartProfilerLocalization.Get("scene.group.lighting"))
             {
-                case "Lighting":
-                    return new Color(1f, 0.78f, 0.26f);
-                case "Geometry":
-                    return new Color(0.23f, 0.63f, 0.94f);
-                case "Gameplay":
-                    return new Color(0.38f, 0.8f, 0.5f);
-                case "UI":
-                    return new Color(0.82f, 0.5f, 0.94f);
-                case "Audio":
-                    return new Color(0.98f, 0.45f, 0.45f);
-                case "VFX":
-                    return new Color(0.95f, 0.5f, 0.18f);
-                case "Cameras":
-                    return new Color(0.42f, 0.86f, 0.88f);
-                default:
-                    return new Color(0.65f, 0.65f, 0.7f);
+                return new Color(1f, 0.78f, 0.26f);
             }
+
+            if (groupName == SmartProfilerLocalization.Get("scene.group.geometry"))
+            {
+                return new Color(0.23f, 0.63f, 0.94f);
+            }
+
+            if (groupName == SmartProfilerLocalization.Get("scene.group.gameplay"))
+            {
+                return new Color(0.38f, 0.8f, 0.5f);
+            }
+
+            if (groupName == SmartProfilerLocalization.Get("scene.group.ui"))
+            {
+                return new Color(0.82f, 0.5f, 0.94f);
+            }
+
+            if (groupName == SmartProfilerLocalization.Get("scene.group.audio"))
+            {
+                return new Color(0.98f, 0.45f, 0.45f);
+            }
+
+            if (groupName == SmartProfilerLocalization.Get("scene.group.vfx"))
+            {
+                return new Color(0.95f, 0.5f, 0.18f);
+            }
+
+            if (groupName == SmartProfilerLocalization.Get("scene.group.cameras"))
+            {
+                return new Color(0.42f, 0.86f, 0.88f);
+            }
+
+            return new Color(0.65f, 0.65f, 0.7f);
+        }
+
+        private string GetHealthDisplayName(SceneHealthLevel level)
+        {
+            switch (level)
+            {
+                case SceneHealthLevel.Warning:
+                    return SmartProfilerLocalization.Get("scene.health.warning");
+                case SceneHealthLevel.Critical:
+                    return SmartProfilerLocalization.Get("scene.health.critical");
+                default:
+                    return SmartProfilerLocalization.Get("scene.health.good");
+            }
+        }
+
+        private System.Collections.Generic.List<string> BuildLanguageChoices()
+        {
+            return new System.Collections.Generic.List<string>
+            {
+                SmartProfilerLocalization.GetLanguageDisplayName(SmartProfilerLanguage.English),
+                SmartProfilerLocalization.GetLanguageDisplayName(SmartProfilerLanguage.Turkish)
+            };
         }
     }
 }

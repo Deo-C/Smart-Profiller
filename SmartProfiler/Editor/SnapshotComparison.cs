@@ -160,11 +160,11 @@ namespace SmartProfiler.Editor
                 return rows;
             }
 
-            rows.Add(BuildLowerIsBetterRow("Avg frame time", baseline.Metrics.AvgFrameTimeMs, current.Metrics.AvgFrameTimeMs, FormatMilliseconds));
-            rows.Add(BuildLowerIsBetterRow("P95 frame time", baseline.Metrics.P95FrameTimeMs, current.Metrics.P95FrameTimeMs, FormatMilliseconds));
-            rows.Add(BuildLowerIsBetterRow("GC alloc/frame", baseline.Metrics.AvgGcAllocBytes, current.Metrics.AvgGcAllocBytes, FormatBytes));
-            rows.Add(BuildLowerIsBetterRow("Draw calls", baseline.Metrics.AvgDrawCalls, current.Metrics.AvgDrawCalls, FormatRounded));
-            rows.Add(BuildLowerIsBetterRow("Spikes", baseline.Metrics.SpikeCount, current.Metrics.SpikeCount, FormatInteger));
+            rows.Add(BuildLowerIsBetterRow(SmartProfilerLocalization.Get("profiler.comparison.avgFrame"), baseline.Metrics.AvgFrameTimeMs, current.Metrics.AvgFrameTimeMs, FormatMilliseconds));
+            rows.Add(BuildLowerIsBetterRow(SmartProfilerLocalization.Get("profiler.comparison.p95"), baseline.Metrics.P95FrameTimeMs, current.Metrics.P95FrameTimeMs, FormatMilliseconds));
+            rows.Add(BuildLowerIsBetterRow(SmartProfilerLocalization.Get("profiler.comparison.gc"), baseline.Metrics.AvgGcAllocBytes, current.Metrics.AvgGcAllocBytes, FormatBytes));
+            rows.Add(BuildLowerIsBetterRow(SmartProfilerLocalization.Get("profiler.comparison.drawCalls"), baseline.Metrics.AvgDrawCalls, current.Metrics.AvgDrawCalls, FormatRounded));
+            rows.Add(BuildLowerIsBetterRow(SmartProfilerLocalization.Get("profiler.comparison.spikes"), baseline.Metrics.SpikeCount, current.Metrics.SpikeCount, FormatInteger));
             return rows;
         }
 

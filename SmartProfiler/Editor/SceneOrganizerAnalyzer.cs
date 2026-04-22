@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
+using SmartProfiler.Runtime;
 
 namespace SmartProfiler.Editor
 {
@@ -54,7 +55,7 @@ namespace SmartProfiler.Editor
             Scene scene = SceneManager.GetActiveScene();
             var report = new SceneOrganizerReport
             {
-                SceneName = string.IsNullOrEmpty(scene.name) ? "Untitled Scene" : scene.name
+                SceneName = string.IsNullOrEmpty(scene.name) ? SmartProfilerLocalization.Get("scene.untitled") : scene.name
             };
 
             var groups = new Dictionary<string, SceneGroupSummary>();
@@ -66,7 +67,7 @@ namespace SmartProfiler.Editor
                 Traverse(roots[i], report, groups);
             }
 
-            foreach (var pair in groups)
+            foreach (KeyValuePair<string, SceneGroupSummary> pair in groups)
             {
                 report.Groups.Add(pair.Value);
             }
@@ -82,12 +83,12 @@ namespace SmartProfiler.Editor
                 return b.TriangleCount.CompareTo(a.TriangleCount);
             });
 
-            report.Metrics.Add(CreateMetric("Polygons", report.TriangleCount.ToString("N0"), "Approx. triangle count from visible meshes.", 150000, 400000));
-            report.Metrics.Add(CreateMetric("Active Lights", report.ActiveLights.ToString(), "Realtime and enabled lights in hierarchy.", 6, 12));
-            report.Metrics.Add(CreateMetric("Colliders", report.ColliderCount.ToString(), "Physics surface count in the active scene.", 150, 400));
-            report.Metrics.Add(CreateMetric("Renderers", report.RendererCount.ToString(), "Visible render components.", 200, 600));
-            report.Metrics.Add(CreateMetric("Rigidbodies", report.RigidbodyCount.ToString(), "Dynamic physics bodies.", 50, 150));
-            report.Metrics.Add(CreateMetric("Canvas", report.CanvasCount.ToString(), "UI root canvases.", 4, 10));
+            report.Metrics.Add(CreateMetric("scene.metric.polygons", report.TriangleCount.ToString("N0"), "scene.metric.polygons.hint", 150000, 400000));
+            report.Metrics.Add(CreateMetric("scene.metric.lights", report.ActiveLights.ToString(), "scene.metric.lights.hint", 6, 12));
+            report.Metrics.Add(CreateMetric("scene.metric.colliders", report.ColliderCount.ToString(), "scene.metric.colliders.hint", 150, 400));
+            report.Metrics.Add(CreateMetric("scene.metric.renderers", report.RendererCount.ToString(), "scene.metric.renderers.hint", 200, 600));
+            report.Metrics.Add(CreateMetric("scene.metric.rigidbodies", report.RigidbodyCount.ToString(), "scene.metric.rigidbodies.hint", 50, 150));
+            report.Metrics.Add(CreateMetric("scene.metric.canvas", report.CanvasCount.ToString(), "scene.metric.canvas.hint", 4, 10));
 
             return report;
         }
@@ -129,8 +130,7 @@ namespace SmartProfiler.Editor
             report.ColliderCount += go.GetComponents<Collider>().Length;
             report.ColliderCount += go.GetComponents<Collider2D>().Length;
 
-            Renderer renderer = go.GetComponent<Renderer>();
-            if (renderer != null)
+            if (go.GetComponent<Renderer>() != null)
             {
                 report.RendererCount++;
             }
@@ -138,20 +138,17 @@ namespace SmartProfiler.Editor
             report.RigidbodyCount += go.GetComponents<Rigidbody>().Length;
             report.RigidbodyCount += go.GetComponents<Rigidbody2D>().Length;
 
-            AudioSource audioSource = go.GetComponent<AudioSource>();
-            if (audioSource != null)
+            if (go.GetComponent<AudioSource>() != null)
             {
                 report.AudioSourceCount++;
             }
 
-            Canvas canvas = go.GetComponent<Canvas>();
-            if (canvas != null)
+            if (go.GetComponent<Canvas>() != null)
             {
                 report.CanvasCount++;
             }
 
-            Camera camera = go.GetComponent<Camera>();
-            if (camera != null)
+            if (go.GetComponent<Camera>() != null)
             {
                 report.CameraCount++;
             }
@@ -219,27 +216,27 @@ namespace SmartProfiler.Editor
         {
             if (go.GetComponent<Light>() != null || go.GetComponent<Light2D>() != null || go.GetComponent<ReflectionProbe>() != null)
             {
-                return "Lighting";
+                return SmartProfilerLocalization.Get("scene.group.lighting");
             }
 
             if (go.GetComponent<Canvas>() != null || go.GetComponent<UnityEngine.UI.Graphic>() != null)
             {
-                return "UI";
+                return SmartProfilerLocalization.Get("scene.group.ui");
             }
 
             if (go.GetComponent<Camera>() != null || go.GetComponent<AudioListener>() != null)
             {
-                return "Cameras";
+                return SmartProfilerLocalization.Get("scene.group.cameras");
             }
 
             if (go.GetComponent<ParticleSystem>() != null || go.GetComponent<TrailRenderer>() != null || go.GetComponent<LineRenderer>() != null)
             {
-                return "VFX";
+                return SmartProfilerLocalization.Get("scene.group.vfx");
             }
 
             if (go.GetComponent<AudioSource>() != null)
             {
-                return "Audio";
+                return SmartProfilerLocalization.Get("scene.group.audio");
             }
 
             if (go.GetComponent<Collider>() != null ||
@@ -248,7 +245,7 @@ namespace SmartProfiler.Editor
                 go.GetComponent<Rigidbody2D>() != null ||
                 go.GetComponent<CharacterController>() != null)
             {
-                return "Gameplay";
+                return SmartProfilerLocalization.Get("scene.group.gameplay");
             }
 
             if (go.GetComponent<MeshRenderer>() != null ||
@@ -257,13 +254,13 @@ namespace SmartProfiler.Editor
                 go.GetComponent<TilemapRenderer>() != null ||
                 go.GetComponent<Terrain>() != null)
             {
-                return "Geometry";
+                return SmartProfilerLocalization.Get("scene.group.geometry");
             }
 
-            return "Utility";
+            return SmartProfilerLocalization.Get("scene.group.utility");
         }
 
-        private static SceneMetric CreateMetric(string label, string value, string hint, int warningThreshold, int criticalThreshold)
+        private static SceneMetric CreateMetric(string labelKey, string value, string hintKey, int warningThreshold, int criticalThreshold)
         {
             int numericValue;
             int.TryParse(value.Replace(",", string.Empty), out numericValue);
@@ -280,9 +277,9 @@ namespace SmartProfiler.Editor
 
             return new SceneMetric
             {
-                Label = label,
+                Label = SmartProfilerLocalization.Get(labelKey),
                 Value = value,
-                Hint = hint,
+                Hint = SmartProfilerLocalization.Get(hintKey),
                 Level = level
             };
         }
